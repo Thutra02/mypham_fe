@@ -1,0 +1,97 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ========== Reused Styles ========== */
+.table-header {
+    @apply px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider;
+}
+
+.table-cell {
+    @apply px-6 py-4 whitespace-nowrap text-sm text-gray-500;
+}
+
+.table-cell-bold {
+    @apply px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900;
+}
+
+.action-button {
+    @apply text-indigo-600 hover:text-indigo-900 transition-colors duration-200 p-1 rounded-md;
+}
+
+.delete-button {
+    @apply text-red-600 hover:text-red-900 transition-colors duration-200 p-1 rounded-md;
+}
+
+.modal-overlay {
+    @apply fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity;
+}
+
+.modal-container {
+    @apply fixed inset-0 z-10 overflow-y-auto flex items-center justify-center p-4;
+}
+
+.modal-panel {
+    @apply relative transform overflow-hidden rounded-xl bg-white shadow-xl transition-all w-full max-w-lg mx-auto;
+}
+
+.modal-close-button {
+    @apply absolute right-4 top-4 rounded-md bg-white p-1 text-gray-400 hover:text-gray-500 focus:outline-none;
+}
+
+/* ========== New Custom Styles ========== */
+.contact-list-container {
+    @apply p-8 bg-gray-50 min-h-screen;
+}
+
+.contact-header {
+    @apply flex justify-between items-center mb-8 border-b pb-6;
+}
+
+.contact-title {
+    @apply text-3xl font-bold text-gray-800 tracking-tight;
+}
+
+.search-input {
+    @apply mt-2 block w-full rounded-lg border-0 py-2.5 px-4 text-gray-900 shadow-sm ring-1 ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500 sm:text-sm;
+}
+
+.table-wrapper {
+    @apply overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm;
+}
+
+.message-preview {
+    @apply max-w-[300px] truncate text-gray-600 transition-all hover:max-w-none hover:whitespace-normal hover:bg-gray-50 px-2 py-1 rounded;
+}
+
+.empty-state {
+    @apply py-12 text-center text-gray-400 text-sm;
+}
+
+.modal-content-container {
+    @apply bg-white px-6 pb-6 pt-4;
+}
+
+.modal-content-item {
+    @apply mb-4 last:mb-0;
+}
+
+.modal-content-label {
+    @apply block text-sm font-medium text-gray-700 mb-1;
+}
+
+.modal-content-value {
+    @apply text-gray-600 text-sm break-words bg-gray-50 rounded-lg p-3;
+}
+
+.pagination-container {
+    @apply mt-6 bg-white px-4 py-3 rounded-lg shadow-sm border border-gray-200;
+}
+
+.confirm-button {
+    @apply inline-flex justify-center rounded-lg bg-red-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600;
+}
+
+.cancel-button {
+    @apply inline-flex justify-center rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-200 mt-3 sm:mt-0;
+}

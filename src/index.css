@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@tailwind variants;
+
+
+.nc-ProductCard__title {
+    display: -webkit-box;
+    -webkit-line-clamp: 3; /* Giới hạn số dòng */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Hiển thị dấu "..." nếu quá dài */
+  }
+
+
+  
