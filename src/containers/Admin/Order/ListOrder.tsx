@@ -1,17 +1,18 @@
 import { Dialog, Transition } from '@headlessui/react';
 import { PencilSquareIcon, TrashIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { debounce } from 'lodash';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useDispatch, useSelector } from 'react-redux';
 import { NavLink } from 'react-router';
+import { AuthContext, AuthContextType } from '../../../context/AuthContext';
 import { deleteOrder, fetchOrders, updateOrderStatus } from '../../../features/order/orderSlice';
 import { AppDispatch, RootState } from '../../../store';
 import { OrderStatus } from '../../../types/order.types';
 import formatDate from '../../../utils/formatDate';
 import formatCurrencyVND from '../../../utils/formatMoney';
-import PaginationItem from '../PaginationItem';
 import "../Brand/ListBrand.css";
+import PaginationItem from '../PaginationItem';
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
@@ -24,6 +25,7 @@ const ListOrder = () => {
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
   const [searchOrderId, setSearchOrderId] = useState<string>('');
   const [pageSize, setPageSize] = useState<number>(5);
+  const {   userRole } = useContext<AuthContextType>(AuthContext as any);
 
 
 
@@ -87,11 +89,15 @@ const ListOrder = () => {
 
   const handleStatusChange = async (id: number, newStatus: OrderStatus) => {
     try {
+      if (userRole !== 'ADMIN' && newStatus === OrderStatus.CANCELLED) {
+        toast.error('Bạn không có quyền hủy đơn hàng!');
+        return;
+      }
       await dispatch(updateOrderStatus({ id, status: newStatus })).unwrap();
       toast.success('Cập nhật trạng thái đơn hàng thành công!');
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast.error('Cập nhật trạng thái đơn hàng thất bại!');
+      toast.error(error);
     }
   };
 
@@ -155,7 +161,7 @@ const ListOrder = () => {
                     <select
                       value={order.status}
                       onChange={(e) => handleStatusChange(order.id, e.target.value as OrderStatus)}
-                      className="w-full max-w-[200px] border rounded-md px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                      className="mt-1  rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                     >
                       {Object.values(OrderStatus).map(status => (
                         <option key={status} value={status}>
@@ -166,16 +172,16 @@ const ListOrder = () => {
                   </td>
                   <td className="table-cell px-6 py-4">
                     <div className="flex space-x-2">
-                      
+
                       <NavLink
-                          to={`/admin/orders/edit/${order.id}`}
+                        to={`/admin/orders/edit/${order.id}`}
                         className="action-button p-1 rounded hover:bg-gray-100"
                         title="Chỉnh sửa"
                       >
                         <PencilSquareIcon className="h-5 w-5" />
                       </NavLink>
                       <button
-                         onClick={() => openDeleteModal(order.id)}
+                        onClick={() => openDeleteModal(order.id)}
                         className="delete-button p-1 rounded hover:bg-gray-100"
                         title="Xóa"
                       >
@@ -246,7 +252,7 @@ const ListOrder = () => {
                       <XMarkIcon className="h-6 w-6 text-current" />
                     </button>
                   </div>
-                  
+
                   <div className="mt-4">
                     <p className="text-sm text-gray-500">
                       Bạn có chắc chắn muốn xóa đơn hàng này không? Hành động này không thể hoàn tác.

@@ -149,7 +149,7 @@ const ListBlog = () => {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
                       className={classNames(
-                        blog.status === 'Published' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800',
+                        blog.status === 'Hoạt động' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800',
                         'px-2 inline-flex text-xs leading-5 font-semibold rounded-full'
                       )}
                     >

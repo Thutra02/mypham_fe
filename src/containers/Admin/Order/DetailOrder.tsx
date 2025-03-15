@@ -11,12 +11,13 @@ import {
   TruckIcon,
   XMarkIcon
 } from "@heroicons/react/24/outline";
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useContext, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router';
 import OrderItemsTable from '../../../components/OrderItemsTable';
 import OrderTimeline from '../../../components/OrderTimeline';
+import { AuthContext, AuthContextType } from '../../../context/AuthContext';
 import { fetchOrderDetails, sendMailOrder, updateOrderStatus } from '../../../features/order/orderSlice';
 import { AppDispatch, RootState } from '../../../store';
 import { OrderStatus } from '../../../types/order.types';
@@ -28,8 +29,8 @@ const DetailOrder = () => {
   const { orderDetails: order, loading } = useSelector((state: RootState) => state.orders);
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | null>(null);
   const [isEditing, setIsEditing] = useState<boolean>(false);
+  const { userRole } = useContext<AuthContextType>(AuthContext as any);
 
-  console.log(order)
   useEffect(() => {
     if (id) {
       dispatch(fetchOrderDetails(Number(id)));
@@ -49,13 +50,17 @@ const DetailOrder = () => {
   const saveChanges = async () => {
     if (order && selectedStatus) {
       try {
-        dispatch(updateOrderStatus({ id: order.id, status: selectedStatus }));
+        if (userRole !== 'ADMIN' && selectedStatus === OrderStatus.CANCELLED) {
+          toast.error('Bạn không có quyền hủy đơn hàng!');
+          setIsEditing(false);
+          return;
+        }
+        await dispatch(updateOrderStatus({ id: order.id, status: selectedStatus })).unwrap();
         toast.success("Cập nhật trạng thái đơn hàng thành công");
+      } catch (error: any) {
+        toast.error(error);
+      } finally {
         setIsEditing(false);
-      } catch (error) {
-        console.log(error);
-        toast.error("Cập nhật trạng thái đơn hàng thất bại");
-
       }
     }
   };

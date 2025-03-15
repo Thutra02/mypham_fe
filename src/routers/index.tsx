@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router";
+import { BrowserRouter, Route, Routes } from "react-router";
 import AccountBilling from "../containers/AccountPage/AccountBilling";
 import AccountOrder from "../containers/AccountPage/AccountOrder";
 import AccountOrderDetail from "../containers/AccountPage/AccountOrderDetail";
@@ -15,8 +15,8 @@ import AddBrand from "../containers/Admin/Brand/AddBrand";
 import ListBrand from "../containers/Admin/Brand/ListBrand";
 import AddCategories from "../containers/Admin/Categories/AddCategories";
 import ListCategories from "../containers/Admin/Categories/ListCategories";
+import ListContact from "../containers/Admin/Contact/ListContact";
 import DashboardPage from "../containers/Admin/Dashboard/DashboardPage";
-import DashboardPageNew from "../containers/Admin/Dashboard/DashboardPageNew";
 import AddDiscount from "../containers/Admin/Discount/AddDiscount";
 import ListDiscount from "../containers/Admin/Discount/ListDiscount";
 import DetailOrder from "../containers/Admin/Order/DetailOrder";
@@ -46,7 +46,6 @@ import AdminLayout from "../layout/AdminLayout";
 import Footer from "../shared/Footer/Footer";
 import ScrollToTop from "./ScrollToTop";
 import { Page } from "./types";
-import ListContact from "../containers/Admin/Contact/ListContact";
 
 export const pages: Page[] = [
   { path: "/", component: PageHome },
@@ -165,6 +164,10 @@ export const adminPages: Page[] = [
     component: AddBlogCategory,
   },
 ]
+const employeePages = adminPages.filter(page =>
+  page.path !== "/admin/users" && page.path !== "/admin"
+);
+
 
 const MyRoutes = () => {
   const { isAuthenticated, userRole, loading } = useContext<AuthContextType>(AuthContext as any);
@@ -187,6 +190,15 @@ const MyRoutes = () => {
     </div>
   }
 
+  // Hàm helper để render admin/employee routes
+  const renderAdminRoute = (page: Page, index: number) => (
+    <Route
+      key={index}
+      path={page.path}
+      element={<page.component />}
+    />
+  );
+
   return (
     <BrowserRouter>
       <Toaster />
@@ -198,36 +210,28 @@ const MyRoutes = () => {
             <Component /> <Footer />
           </>} path={path} />;
         })}
-        {isAuthenticated ? (
-          userRole === "USER"
-            ? (
-              privatePages.map(({ component: Component, path }, index) => {
-                return <Route key={index} element={<>
-                  <SiteHeader />
-                  <Component />
-                  <Footer />
-                </>} path={path} />;
-              })
-            ) : userRole === "ADMIN" ? (
+        {isAuthenticated && (
+          <>
+            {
+              userRole === "USER" && (
+                privatePages.map(({ component: Component, path }, index) => {
+                  return <Route key={index} element={<>
+                    <SiteHeader />
+                    <Component />
+                    <Footer />
+                  </>} path={path} />;
+                })
+              )
+            }
+            {(userRole === "ADMIN" || userRole === "EMPLOYEE") && (
               <Route path="/" element={<AdminLayout />}>
-                {
-                  adminPages.map(({ component: Component, path }, index) => {
-                    return <Route key={index} element={<>
-                      <Component />
-                    </>} path={path} />;
-                  })
-                }
+                {(userRole === "ADMIN" ? adminPages : employeePages).map(renderAdminRoute)}
               </Route>
-            ) : (
-              <Route path="*" element={<Navigate to="/" />} />
-            )
-        ) : (
-          <Route path="*" element={<Navigate to="/" />} />
-        )}
-        <Route path="/db" element={<>
-          <DashboardPageNew />
+            )}
 
-        </>} />
+          </>
+        )}
+
         <Route path="/signup" element={<>
           <SiteHeader />
           <PageSignUp />
@@ -259,7 +263,7 @@ const MyRoutes = () => {
       </Routes>
 
 
-    </BrowserRouter>
+    </BrowserRouter >
   );
 };
 

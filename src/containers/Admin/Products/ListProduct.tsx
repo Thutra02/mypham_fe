@@ -35,7 +35,7 @@ const ListProduct = () => {
   const [pageSize, setPageSize] = useState<number>(5);
 
   useEffect(() => {
-    dispatch(fetchProducts({ page: 1, search: searchName, isActive: false }));
+    dispatch(fetchProducts({ page: 1, search: searchName, isActive: false ,size: pageSize}));
   }, [dispatch, pageSize]);
 
   const openDeleteModal = (id: number) => {
@@ -62,13 +62,13 @@ const ListProduct = () => {
   };
 
   const handlePageChange = (page: number) => {
-    dispatch(fetchProducts({ page, search: searchName, isActive: false }));
+    dispatch(fetchProducts({ page, search: searchName, isActive: false,size:pageSize }));
   };
 
   const handlePageSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newSize = parseInt(e.target.value);
     setPageSize(newSize);
-    dispatch(fetchProducts({ page: 1, search: searchName, isActive: false }));
+    dispatch(fetchProducts({ page: 1, search: searchName, isActive: false,size: newSize }));
   };
 
   const debouncedSearch = debounce((value: string) => {

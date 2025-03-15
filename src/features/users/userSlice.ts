@@ -95,6 +95,26 @@ export const blockUser = createAsyncThunk(
   }
 );
 
+export const changeRole = createAsyncThunk(
+  "user/changeRole",
+  async ({
+    userId,
+    role,
+  }: {
+    userId: number;
+    role: "USER" | "ADMIN" | "EMPLOYEE";
+  }) => {
+    const response = await api.put(`/api/user/role/${userId}?role=${role}`);
+    if (response.data.status === "error") {
+      throw new Error(response.data.message);
+    }
+    return {
+      userId,
+      role,
+    };
+  }
+);
+
 const userSlice = createSlice({
   name: "user",
   initialState,
@@ -189,7 +209,29 @@ const userSlice = createSlice({
       .addCase(blockUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || "Failed to block user";
-      });
+      })
+      .addCase(changeRole.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(
+        changeRole.fulfilled,
+        (
+          state,
+          action: PayloadAction<{
+            userId: number;
+            role: "USER" | "ADMIN" | "EMPLOYEE";
+          }>
+        ) => {
+          state.loading = false;
+          const index = state.users.findIndex(
+            (user) => user.id === action.payload.userId
+          );
+          if (index !== -1) {
+            state.users[index].role = action.payload.role;
+          }
+        }
+      );
   },
 });
 

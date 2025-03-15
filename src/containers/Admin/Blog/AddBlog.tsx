@@ -2,7 +2,7 @@ import { Editor } from "@tinymce/tinymce-react";
 import { FormEvent, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
-import { NavLink, useNavigate, useParams } from "react-router";
+import { NavLink, useNavigate, useParams } from "react-router"; // Sửa NavLink import
 import api from "../../../api/api";
 import {
   addBlog,
@@ -15,16 +15,14 @@ import { fetchUsers } from "../../../features/users/userSlice";
 import { AppDispatch, RootState } from "../../../store";
 import { BlogRequest } from "../../../types";
 import { uploadImage } from "../../../utils/uploadImage";
-import "../Brand/AddBrand.css"; // Sử dụng cùng file CSS với AddBrand
+import "../Brand/AddBrand.css";
 
 const AddBlog = () => {
   const navigate = useNavigate();
   const dispatch: AppDispatch = useDispatch();
   const { id } = useParams<{ id: string }>();
   const { blog } = useSelector((state: RootState) => state.blogs);
-  const { categories } = useSelector(
-    (state: RootState) => state.blogCategories
-  );
+  const { categories } = useSelector((state: RootState) => state.blogCategories);
   const { tags } = useSelector((state: RootState) => state.tags);
   const { users } = useSelector((state: RootState) => state.users);
 
@@ -36,7 +34,7 @@ const AddBlog = () => {
     status: "Nháp",
     categoryId: "",
     authorId: "",
-    tagIds: [] as string[],
+    tagIds: [] as string[], // Chỉ lưu tên tag dưới dạng chuỗi
   });
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -60,7 +58,7 @@ const AddBlog = () => {
   // Xử lý thay đổi tag (multiple select)
   const handleTagChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedOptions = Array.from(e.target.selectedOptions, (option) =>
-       option.value
+      option.value
     );
     setFormData((prev) => ({ ...prev, tagIds: selectedOptions }));
   };
@@ -73,16 +71,14 @@ const AddBlog = () => {
   // Thêm tag mới
   const addNewTag = () => {
     if (newTag.trim() !== "") {
-      const newTagObject = { id: Date.now(), name: newTag };
       setFormData((prev) => ({
         ...prev,
-        tagIds: [...prev.tagIds, newTagObject.name],
+        tagIds: [...prev.tagIds, newTag.trim()], // Chỉ thêm tên tag
       }));
       setNewTag("");
-
-      toast.success("Added new tag successfully");
+      toast.success("Thêm tag mới thành công");
     } else {
-      toast.error("Tag name cannot be empty");
+      toast.error("Tên tag không được để trống");
     }
   };
 
@@ -104,18 +100,14 @@ const AddBlog = () => {
     }
   };
 
+  // Fetch dữ liệu ban đầu
   useEffect(() => {
     dispatch(fetchBlogCategories({ page: 1, search: "", size: 100 }));
     dispatch(fetchTags({ page: 1, search: "", size: 100 }));
-    dispatch(
-      fetchUsers({
-        page: 1,
-        search: "",
-        size: 100,
-      })
-    );
+    dispatch(fetchUsers({ page: 1, search: "", size: 100 }));
   }, [dispatch]);
 
+  // Load dữ liệu blog khi chỉnh sửa
   useEffect(() => {
     if (id) {
       dispatch(fetchBlogById(Number(id))).then((action) => {
@@ -126,9 +118,9 @@ const AddBlog = () => {
             content: blog.content,
             image: blog.image,
             status: blog.status,
-            categoryId: blog?.category?.id?.toString(),
+            categoryId: blog?.category?.id?.toString() || "",
             authorId: blog.author.id.toString(),
-            tagIds: blog.tags.map((tag) => tag.name),
+            tagIds: blog.tags.map((tag) => tag.name), // Lấy danh sách tên tag
           });
           setImagePreview(blog.image);
         }
@@ -157,22 +149,19 @@ const AddBlog = () => {
         status: formData.status,
         createdDate: blog ? blog.createdDate : new Date().toISOString(),
         updatedDate: new Date().toISOString(),
-        categoryId: categories.find(
-          (cat) => cat.id === Number(formData.categoryId)
-        )?.id!,
-        author: users.find((user) => user.id === Number(formData.authorId))
-          ?.id!,
-        tags: tags
-          .filter((tag) => formData.tagIds.includes(tag.name))
-          .map((tag) => tag.name),
+        categoryId: Number(formData.categoryId),
+        author: Number(formData.authorId),
+        tags: formData.tagIds, // Gửi danh sách tên tag trực tiếp
       };
-console.log(newBlog)
+
+      console.log(newBlog);
+
       if (blog?.id) {
         await dispatch(updateBlog(newBlog)).unwrap();
-        toast.success("Updated blog successfully");
+        toast.success("Cập nhật blog thành công");
       } else {
         await dispatch(addBlog(newBlog)).unwrap();
-        toast.success("Added blog successfully");
+        toast.success("Thêm blog thành công");
       }
       navigate("/admin/blog");
     } catch (error: any) {
@@ -191,7 +180,7 @@ console.log(newBlog)
           <span className="form-back-link-text">Quay lại danh sách Blog</span>
         </NavLink>
       </div>
-  
+
       {/* Form */}
       <form onSubmit={handleSubmit} className="form">
         <div className="space-y-6">
@@ -210,7 +199,7 @@ console.log(newBlog)
               className="form-input"
             />
           </div>
-  
+
           {/* Content Editor */}
           <div className="form-group">
             <label htmlFor="content" className="form-label">
@@ -239,7 +228,7 @@ console.log(newBlog)
               />
             </div>
           </div>
-  
+
           {/* Image Upload */}
           <div className="form-group">
             <label htmlFor="image" className="form-label">
@@ -256,16 +245,16 @@ console.log(newBlog)
               />
               {imagePreview && (
                 <div className="form-image-preview">
-                  <img 
-                    src={imagePreview} 
-                    alt="Preview" 
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
                     className="border p-1 rounded-md"
                   />
                 </div>
               )}
             </div>
           </div>
-  
+
           {/* Status and Category */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Status */}
@@ -284,7 +273,7 @@ console.log(newBlog)
                 <option value="Hoạt động">Hoạt động</option>
               </select>
             </div>
-  
+
             {/* Category */}
             <div className="form-group">
               <label htmlFor="categoryId" className="form-label">
@@ -307,85 +296,79 @@ console.log(newBlog)
               </select>
             </div>
           </div>
-  
-         {/* Author and Tags */}
-<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-  {/* Author */}
-  <div className="form-group">
-    <label
-      htmlFor="authorId"
-      className="block text-sm font-medium text-gray-700"
-    >
-      Tác giả
-    </label>
-    <select
-      id="authorId"
-      name="authorId"
-      value={formData.authorId}
-      onChange={handleInputChange}
-      required
-      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-    >
-      <option value="">Chọn tác giả</option>
-      {users &&
-        users.map((author) => (
-          <option key={author.id} value={author.id}>
-            {author.username}
-          </option>
-        ))}
-    </select>
-  </div>
 
-  {/* Tags */}
-  <div className="form-group">
-    <label
-      htmlFor="tagIds"
-      className="block text-sm font-medium text-gray-700"
-    >
-      Thẻ
-    </label>
-    <div className="space-y-2">
-      <select
-        id="tagIds"
-        name="tagIds"
-        multiple
-        value={formData.tagIds.map(String)}
-        onChange={handleTagChange}
-        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm h-32"
-      >
-        {tags.map((tag) => (
-          <option key={tag.id} value={tag.name}>
-            {tag.name}
-          </option>
-        ))}
-      </select>
-      
-      <p className="text-sm text-gray-500">
-        Giữ Ctrl (hoặc Cmd) để chọn nhiều thẻ
-      </p>
+          {/* Author and Tags */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Author */}
+            <div className="form-group">
+              <label htmlFor="authorId" className="form-label">
+                Tác giả
+              </label>
+              <select
+                id="authorId"
+                name="authorId"
+                value={formData.authorId}
+                onChange={handleInputChange}
+                required
+                className="form-select"
+              >
+                <option value="">Chọn tác giả</option>
+                {users &&
+                  users.map((author) => (
+                    <option key={author.id} value={author.id}>
+                      {author.username}
+                    </option>
+                  ))}
+              </select>
+            </div>
 
-      {/* New Tag Input */}
-      <div className="flex gap-2">
-        <input
-          type="text"
-          value={newTag}
-          onChange={handleNewTagChange}
-          onKeyDown={handleKeyDown}
-          placeholder="Nhập thẻ mới"
-          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-        />
-        <button
-          type="button"
-          onClick={addNewTag}
-          className="inline-flex justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 whitespace-nowrap"
-        >
-          Thêm
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-  
+            {/* Tags */}
+            <div className="form-group">
+              <label htmlFor="tagIds" className="form-label">
+                Thẻ
+              </label>
+              <div className="space-y-2">
+                <select
+                  id="tagIds"
+                  name="tagIds"
+                  multiple
+                  value={formData.tagIds}
+                  onChange={handleTagChange}
+                  className="form-select h-32"
+                >
+                  {tags.map((tag) => (
+                    <option key={tag.id} value={tag.name}>
+                      {tag.name}
+                    </option>
+                  ))}
+                </select>
+
+                <p className="text-sm text-gray-500">
+                  Giữ Ctrl (hoặc Cmd) để chọn nhiều thẻ
+                </p>
+
+                {/* New Tag Input */}
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newTag}
+                    onChange={handleNewTagChange}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Nhập thẻ mới"
+                    className="form-input"
+                  />
+                  <button
+                    type="button"
+                    onClick={addNewTag}
+                    className="form-submit-button whitespace-nowrap"
+                  >
+                    Thêm
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Buttons */}
           <div className="form-buttons">
             <NavLink to="/admin/blog" className="form-cancel-button">

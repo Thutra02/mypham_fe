@@ -95,12 +95,24 @@ export const addOrder = createAsyncThunk(
 
 export const updateOrderStatus = createAsyncThunk(
   "order/updateOrderStatus",
-  async ({ id, status }: { id: number; status: string }) => {
-    const response = await api.put(`/api/orders/${id}/status`, { status });
-    if (response.data.status === "error") {
-      throw new Error(response.data.message);
+  async (
+    { id, status }: { id: number; status: string },
+    { rejectWithValue }
+  ) => {
+    try {
+      const response = await api.put(`/api/orders/${id}/status`, { status });
+      if (response.data.status === "error") {
+        throw new Error(response.data.message);
+      }
+      return response.data.data as Order;
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string }>;
+      return rejectWithValue(
+        axiosError.response?.data.message ||
+          axiosError.message ||
+          "An error occurred"
+      );
     }
-    return { id, status } as { id: number; status: string };
   }
 );
 

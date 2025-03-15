@@ -4,10 +4,10 @@ import { debounce } from 'lodash';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useDispatch, useSelector } from 'react-redux';
-import { blockUser, fetchUsers } from '../../../features/users/userSlice';
+import { blockUser, changeRole, fetchUsers } from '../../../features/users/userSlice';
 import { AppDispatch, RootState } from '../../../store';
-import PaginationItem from '../PaginationItem';
 import "../Brand/ListBrand.css"; // Import CSS
+import PaginationItem from '../PaginationItem';
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
@@ -71,6 +71,24 @@ const ListUser = () => {
     debouncedSearch(value);
   };
 
+  const handleRoleChange = async (userId: number, newRole:
+    'USER' | 'EMPLOYEE'
+  ) => {
+    const user = users.find(user => user.id === userId);
+    if (user) {
+      try {
+        await dispatch(changeRole(
+          { userId: userId, role: newRole }
+        )).unwrap();
+        toast.success('Cập nhật vai trò người dùng thành công!');
+      } catch (error) {
+        console.error(error);
+        toast.error('Cập nhật vai trò người dùng thất bại!');
+      }
+
+    };
+  }
+
   return (
     <div className="p-6">
       {/* Header */}
@@ -122,7 +140,18 @@ const ListUser = () => {
                   <td className="table-cell px-6 py-4">{user.id}</td>
                   <td className="table-cell-bold px-6 py-4">{user.username}</td>
                   <td className="table-cell px-6 py-4">{user.email}</td>
-                  <td className="table-cell px-6 py-4">{user.role}</td>
+                  <td className="table-cell px-6 py-4">
+                    <select
+                      value={user.role}
+                      onChange={(e) => handleRoleChange(user.id, e.target.value as 'USER' | 'EMPLOYEE')}
+                      className="mt-1 block  rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    >
+                      <option value="ADMIN">Admin</option>
+                      <option value="EMPLOYEE">Nhân viên</option>
+                      <option value="USER">Người dùng</option>
+                  
+                    </select>
+                  </td>
                   <td className="table-cell px-6 py-4">
                     <span className={user.locked ? "status-inactive" : "status-active"}>
                       {user.locked ? 'Đã Khóa' : 'Hoạt Động'}
@@ -157,7 +186,7 @@ const ListUser = () => {
       </div>
 
       {/* Pagination */}
-      
+
       <PaginationItem
         length={users.length}
         pagination={pagination}

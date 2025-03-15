@@ -10,7 +10,7 @@ export interface User {
   otp: string | null;
   createdDate: string;
   updatedDate: string;
-  role: "USER" | "ADMIN" | "MODERATOR"; // Nếu có nhiều role, có thể mở rộng
+  role: "USER" | "ADMIN" | "EMPLOYEE"; // Nếu có nhiều role, có thể mở rộng
   locked: boolean;
 }
 

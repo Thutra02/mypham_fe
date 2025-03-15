@@ -1,35 +1,30 @@
 import { Menu, Transition } from '@headlessui/react';
 import {
-    Bars3Icon,
-    ChevronDownIcon,
-    ChevronRightIcon,
-    CubeIcon,
-    HomeIcon,
-    ListBulletIcon,
-    PencilSquareIcon,
-    PercentBadgeIcon,
-    PhoneIcon, 
-    ShoppingCartIcon,
-    TagIcon,
-    UserCircleIcon,
-    UsersIcon,
-    XMarkIcon
+    Bars3Icon, ChevronDownIcon, ChevronRightIcon, CubeIcon, HomeIcon,
+    ListBulletIcon, PencilSquareIcon, PercentBadgeIcon, PhoneIcon,
+    ShoppingCartIcon, TagIcon, UserCircleIcon, UsersIcon, XMarkIcon
 } from '@heroicons/react/24/outline';
 import { useContext, useState } from 'react';
 import { NavLink, Outlet } from 'react-router';
 import { AuthContext, AuthContextType } from '../context/AuthContext';
-import './AdminLayout.css'; // Import file CSS tùy chỉnh
+import './AdminLayout.css';
 
 interface MenuItem {
     name: string;
     href: string;
     icon: React.ComponentType<{ className?: string }>;
     children?: MenuItem[];
+    roles?: string[]; // Thêm roles để giới hạn quyền
 }
 
-const generateNavigation = (): MenuItem[] => {
-    return [
-        { name: 'Dashboard', href: '/admin', icon: HomeIcon },
+const generateNavigation = (role: string): MenuItem[] => {
+    const baseNav: MenuItem[] = [
+        { 
+            name: 'Dashboard', 
+            href: '/admin', 
+            icon: HomeIcon, 
+            roles: ['ADMIN'] // Chỉ ADMIN
+        },
         {
             name: 'Brands',
             href: '/admin/brand',
@@ -57,7 +52,6 @@ const generateNavigation = (): MenuItem[] => {
                 { name: 'Add Product', href: '/admin/products/add', icon: PencilSquareIcon },
             ],
         },
-       
         {
             name: 'Discounts',
             href: '/admin/discounts',
@@ -87,9 +81,15 @@ const generateNavigation = (): MenuItem[] => {
             ],
         },
         { name: 'Contact', href: '/admin/contact', icon: PhoneIcon },
-        { name: 'Users', href: '/admin/users', icon: UsersIcon }
-       
+        { 
+            name: 'Users', 
+            href: '/admin/users', 
+            icon: UsersIcon, 
+            roles: ['ADMIN'] // Chỉ ADMIN
+        }
     ];
+
+    return baseNav.filter(item => !item.roles || item.roles.includes(role));
 };
 
 function classNames(...classes: string[]) {
@@ -99,20 +99,79 @@ function classNames(...classes: string[]) {
 export default function AdminLayout() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [expandedItems, setExpandedItems] = useState<string[]>([]);
-    const navigation = generateNavigation();
-    const { logout } = useContext<AuthContextType>(AuthContext as any);
+    const { userRole, logout } = useContext<AuthContextType>(AuthContext as any);
+    const navigation = generateNavigation(userRole || 'EMPLOYEE');
+
     const toggleMenuItem = (name: string) => {
-        setExpandedItems((prev) =>
-            prev.includes(name) ? prev.filter((item) => item !== name) : [...prev, name]
+        setExpandedItems(prev =>
+            prev.includes(name) ? prev.filter(item => item !== name) : [...prev, name]
         );
     };
-    const handleLogout = () => {
-        logout();
-    }
+
+    const handleLogout = () => logout();
+
+    const renderMenuItem = (item: MenuItem) => {
+        const isExpanded = expandedItems.includes(item.name);
+        const Icon = item.icon;
+
+        return (
+            <div key={item.name}>
+                {item.children ? (
+                    <button
+                        onClick={() => toggleMenuItem(item.name)}
+                        className="sidebar-menu-item"
+                    >
+                        <div className="flex items-center">
+                            <Icon className="sidebar-menu-item-icon text-blue-600" />
+                            <span className="sidebar-menu-item-text">{item.name}</span>
+                        </div>
+                        {isExpanded ? (
+                            <ChevronDownIcon className="h-4 w-4 text-blue-600" />
+                        ) : (
+                            <ChevronRightIcon className="h-4 w-4 text-blue-600" />
+                        )}
+                    </button>
+                ) : (
+                    <NavLink
+                        to={item.href}
+                        className={({ isActive }) =>
+                            classNames(
+                                isActive ? 'sidebar-menu-item-active' : '',
+                                'sidebar-menu-item'
+                            )
+                        }
+                    >
+                        <div className="flex items-center">
+                            <Icon className="sidebar-menu-item-icon" />
+                            <span className="sidebar-menu-item-text">{item.name}</span>
+                        </div>
+                    </NavLink>
+                )}
+                {isExpanded && item.children && (
+                    <div className="sidebar-submenu">
+                        {item.children.map(child => (
+                            <NavLink
+                                key={child.name}
+                                to={child.href}
+                                className={({ isActive }) =>
+                                    classNames(
+                                        isActive ? 'sidebar-menu-item-active' : '',
+                                        'sidebar-submenu-item'
+                                    )
+                                }
+                            >
+                                <child.icon className="sidebar-submenu-item-icon" />
+                                <span className="sidebar-submenu-item-text">{child.name}</span>
+                            </NavLink>
+                        ))}
+                    </div>
+                )}
+            </div>
+        );
+    };
 
     return (
         <div className="flex h-screen bg-gradient-to-r from-gray-50 to-gray-100">
-            {/* Sidebar */}
             <div className={classNames(sidebarOpen ? 'translate-x-0' : '-translate-x-full', 'sidebar')}>
                 <div className="sidebar-header">
                     <span className="sidebar-header-title">Admin Panel</span>
@@ -121,76 +180,19 @@ export default function AdminLayout() {
                     </button>
                 </div>
                 <nav className="sidebar-nav">
-                    {navigation.map((item) => {
-                        const isExpanded = expandedItems.includes(item.name);
-                        const Icon = item.icon;
-                        return (
-                            <div key={item.name}>
-                                {item.children ? (
-                                    <button
-                                        onClick={() => toggleMenuItem(item.name)}
-                                        className="sidebar-menu-item"
-                                    >
-                                        <div className="flex items-center">
-                                            <Icon className="sidebar-menu-item-icon text-blue-600" />
-                                            <span className="sidebar-menu-item-text">{item.name}</span>
-                                        </div>
-                                        {isExpanded ? (
-                                            <ChevronDownIcon className="h-4 w-4 text-blue-600" />
-                                        ) : (
-                                            <ChevronRightIcon className="h-4 w-4 text-blue-600" />
-                                        )}
-                                    </button>
-                                ) : (
-                                    <NavLink
-                                        to={item.href}
-                                        className={({ isActive }) =>
-                                            classNames(
-                                                isActive ? 'sidebar-menu-item-active' : '',
-                                                'sidebar-menu-item'
-                                            )
-                                        }
-                                    >
-                                        <div className="flex items-center">
-                                            <Icon className="sidebar-menu-item-icon" />
-                                            <span className="sidebar-menu-item-text">{item.name}</span>
-                                        </div>
-                                    </NavLink>
-                                )}
-                                {isExpanded && item.children && (
-                                    <div className="sidebar-submenu">
-                                        {item.children.map((child) => (
-                                            <NavLink
-                                                key={child.name}
-                                                to={child.href}
-                                                className={({ isActive }) =>
-                                                    classNames(
-                                                        isActive ? 'sidebar-menu-item-active' : '',
-                                                        'sidebar-submenu-item' // Sử dụng class mới
-                                                    )
-                                                }
-                                            >
-                                                <child.icon className="sidebar-submenu-item-icon" /> {/* Sử dụng class mới */}
-                                                <span className="sidebar-submenu-item-text">{child.name}</span> {/* Sử dụng class mới */}
-                                            </NavLink>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })}
+                    {navigation.map(renderMenuItem)}
                 </nav>
             </div>
-            {/* Main Content */}
+
             <div className="main-content">
                 <header className="main-header">
                     <button onClick={() => setSidebarOpen(true)} className="main-header-button">
-                        <Bars3Icon className="h-6 w-6 text-gray-700 " />
+                        <Bars3Icon className="h-6 w-6 text-gray-700" />
                     </button>
                     <Menu as="div" className="relative">
-                        <Menu.Button className="user-menu-button ">
+                        <Menu.Button className="user-menu-button">
                             <UserCircleIcon className="h-8 w-8 text-gray-500" />
-                            <span className="text-gray-700">Admin</span>
+                            <span className="text-gray-700">{userRole || 'Admin'}</span>
                         </Menu.Button>
                         <Transition
                             enter="transition duration-100 ease-out"
@@ -203,23 +205,16 @@ export default function AdminLayout() {
                             <Menu.Items className="user-menu-items">
                                 <Menu.Item>
                                     {({ active }) => (
-                                        <NavLink
-                                            to="/"
-                                            className="user-menu-item"
-                                        >
+                                        <NavLink to="/" className="user-menu-item">
                                             Trang chủ
                                         </NavLink>
                                     )}
                                 </Menu.Item>
                                 <Menu.Item>
                                     {({ active }) => (
-                                        <NavLink
-                                            to="#"
-                                            onClick={handleLogout}
-                                            className="user-menu-item"
-                                        >
+                                        <button onClick={handleLogout} className="user-menu-item w-full text-left">
                                             Logout
-                                        </NavLink>
+                                        </button>
                                     )}
                                 </Menu.Item>
                             </Menu.Items>
@@ -232,4 +227,4 @@ export default function AdminLayout() {
             </div>
         </div>
     );
-};
+}

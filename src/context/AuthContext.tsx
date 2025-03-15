@@ -66,7 +66,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setUserInformation(response.data.data.user);
 
         localStorage.setItem("token", response.data.data.token); // Store token
-        if (response.data.data.user.role === "ADMIN") {
+        if (response.data.data.user.role === "ADMIN" || response.data.data.user.role === "EMPLOYEE") {
           window.location.href = "/admin";
         }
         if (response.data.data.user.role === "USER") {
@@ -86,15 +86,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const logout = async (): Promise<void> => {
-    console.log("logout");
-    setIsAuthenticated(false);
-    localStorage.removeItem("token"); // Remove token
-    setUserRole(null);
-    setUserInformation(null);
-    dispatch(clearCartNew())
-    toast.success("Đăng xuất thành công");
+    localStorage.removeItem("token"); // Xóa token
+    dispatch(clearCartNew()); // Xóa giỏ hàng
+    window.location.href = "/"; // Redirect ngay lập tức về trang chủ
   };
-
   const updateUserInformation = async (updatedInfo: Partial<User>): Promise<void> => {
     try {
       const response = await api.put<UserResponse>(
